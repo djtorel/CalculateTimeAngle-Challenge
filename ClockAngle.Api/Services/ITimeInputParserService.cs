@@ -1,6 +1,12 @@
-﻿namespace ClockAngle.Api.Services;
+﻿using ClockAngle.Api.Models;
+
+namespace ClockAngle.Api.Services;
 
 public interface ITimeInputParserService
 {
-    // Add interface methods here to handle parsing the input
+    TimeParseResult ParseTimeInput(string? time, int? hour, int? minute);
+
+    TimeParseResult ParseFromString(string time);
+
+    TimeParseResult ParseFromParts(int? hour, int? minute);
 }
