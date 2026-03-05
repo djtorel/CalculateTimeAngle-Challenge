@@ -1,0 +1,6 @@
+@ClockAngle.Api_HostAddress = http://localhost:5094
+
+GET {{ClockAngle.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
