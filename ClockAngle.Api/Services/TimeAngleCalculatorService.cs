@@ -11,15 +11,15 @@ public class TimeAngleCalculatorService : ITimeAngleCalculatorService
     // Add main implementation of ITimeAngleCalculatorService here
     public TimeAngleResponse GetTimeAngle(TimeInput timeInput)
     {
-        return BuildResponse(timeInput, ComputerHourAngle(timeInput), ComputerMinuteAngle(timeInput));
+        return BuildResponse(timeInput, ComputeHourAngle(timeInput), ComputeMinuteAngle(timeInput));
     }
 
-    private static double ComputerHourAngle(TimeInput timeInput)
+    private static double ComputeHourAngle(TimeInput timeInput)
     {
-        return timeInput.Hour % 12 * DegreesPerHour + timeInput.Minute * DegreesPerMinute;
+        return timeInput.Hour % 12 * DegreesPerHour + timeInput.Minute * DegreesPerMinuteOnHourHand;
     }
 
-    private static double ComputerMinuteAngle(TimeInput timeInput)
+    private static double ComputeMinuteAngle(TimeInput timeInput)
     {
         return timeInput.Minute * DegreesPerMinute;
     }
