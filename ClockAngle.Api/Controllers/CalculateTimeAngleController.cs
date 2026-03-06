@@ -1,15 +1,19 @@
-﻿using System.Diagnostics;
-using ClockAngle.Api.Models;
+﻿using ClockAngle.Api.Models;
 using ClockAngle.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClockAngle.Api.Controllers;
 
+/// <summary>
+///     Supports two call styles via a single endpoint:
+///     GET /CalculateTimeAngle?time=03:00
+///     GET /CalculateTimeAngle?hour=3&amp;minute=0
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class CalculateTimeAngleController(
     ITimeAngleCalculatorService angleCalculatorService,
-    ITimeInputParserService inputParserService) : ControllerBase
+    ITimeInputParser inputParser) : ControllerBase
 {
     [ProducesResponseType(typeof(TimeAngleResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -18,18 +22,17 @@ public class CalculateTimeAngleController(
         [FromQuery] int? hour = null,
         [FromQuery] int? minute = null)
     {
-        var result = inputParserService.ParseTimeInput(time, hour, minute);
+        var result = inputParser.ParseTimeInput(time, hour, minute);
 
-        return result switch
-        {
-            TimeParseResult.Success(var input) => Ok(angleCalculatorService.GetTimeAngle(input)),
-            TimeParseResult.Failure(var message) => BadRequest(new ProblemDetails
+        return result.Match<IActionResult>(
+            input => Ok(angleCalculatorService.GetTimeAngle(input)),
+            error => BadRequest(new ProblemDetails
             {
                 Title = "Invalid time input",
-                Detail = message,
-                Status = StatusCodes.Status400BadRequest
-            }),
-            _ => throw new UnreachableException("Unexpected TimeParseResult subtype")
-        };
+                Detail = error.Message,
+                Status = StatusCodes.Status400BadRequest,
+                Extensions = { ["errorCode"] = error.Code }
+            })
+        );
     }
 }

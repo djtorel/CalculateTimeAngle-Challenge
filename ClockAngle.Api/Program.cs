@@ -10,7 +10,7 @@ builder.Services.AddOpenApi();
 
 // Register services
 builder.Services.AddSingleton<ITimeAngleCalculatorService, TimeAngleCalculatorService>();
-builder.Services.AddSingleton<ITimeInputParserService, TimeInputParserService>();
+builder.Services.AddSingleton<ITimeInputParser, TimeInputParser>();
 
 var app = builder.Build();
 
