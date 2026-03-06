@@ -22,7 +22,7 @@ public class CalculateTimeAngleController(
 
         return result switch
         {
-            TimeParseResult.Success(var input) => Ok( /* Calculate service call here */),
+            TimeParseResult.Success(var input) => Ok(angleCalculatorService.GetTimeAngle(input)),
             TimeParseResult.Failure(var message) => BadRequest(new ProblemDetails
             {
                 Title = "Invalid time input",

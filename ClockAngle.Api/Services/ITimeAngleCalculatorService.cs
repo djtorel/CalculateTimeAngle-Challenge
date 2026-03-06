@@ -1,6 +1,8 @@
-﻿namespace ClockAngle.Api.Services;
+﻿using ClockAngle.Api.Models;
+
+namespace ClockAngle.Api.Services;
 
 public interface ITimeAngleCalculatorService
 {
-    // Add interface method(s) for calculating here
+    TimeAngleResponse GetTimeAngle(TimeInput timeInput);
 }
