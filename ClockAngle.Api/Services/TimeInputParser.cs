@@ -12,8 +12,12 @@ public class TimeInputParser : ITimeInputParser
         var (timeStatus, hourStatus, minuteStatus) = GetTimeStatuses(time, hour, minute);
         return (timeStatus, hourStatus, minuteStatus) switch
         {
-            // Check if time parameter was entered first
-            (Time.HasValue, _, _) => ParseFromString(time),
+            // Reject mixed input types. The two input conventions are mutually exclusive.
+            (Time.HasValue, Hour.HasValue, _) or (Time.HasValue, _, Minute.HasValue)
+                => Result<TimeInput>.Failure(new AmbiguousParametersError()),
+
+            // Check if time parameter was entered alone
+            (Time.HasValue, Hour.IsEmpty, Minute.IsEmpty) => ParseFromString(time),
 
             // If at least one of hour/minute is provided,
             // let the parser figure out errors or missing fields
@@ -39,9 +43,16 @@ public class TimeInputParser : ITimeInputParser
         var (_, hourStatus, minuteStatus) = GetTimeStatuses(null, hour, minute);
         return (hourStatus, minuteStatus) switch
         {
+            // Check if both time and minute are empty and produce error if so.
             (Hour.IsEmpty, Minute.IsEmpty) => Result<TimeInput>.Failure(new BothParamsMissingError()),
+
+            // If Hour is missing produce a relevant error
             (Hour.IsEmpty, _) => Result<TimeInput>.Failure(new HourParamMissingError()),
+
+            // If Minute is empty then throw a relevant error
             (_, Minute.IsEmpty) => Result<TimeInput>.Failure(new MinuteParamMissingError()),
+
+            // Everything should be good, validate inputs.
             _ => ValidateTimeInput(hour!.Value, minute!.Value)
         };
     }
@@ -50,12 +61,18 @@ public class TimeInputParser : ITimeInputParser
     {
         return (hour, minute) switch
         {
+            // Hour should be between 0 and 23
             (< 0 or > 23, _) => Result<TimeInput>.Failure(new HourOutOfRangeError(hour)),
+
+            // Minute should be between 0 and 59
             (_, < 0 or > 59) => Result<TimeInput>.Failure(new MinuteOutOfRangeError(minute)),
+
+            // Everything should be good, send success
             _ => Result<TimeInput>.Success(new TimeInput(hour, minute))
         };
     }
 
+    // Ensure not null or empty
     private static Result<string> EnsureNotEmpty(string? raw)
     {
         return string.IsNullOrEmpty(raw)
@@ -63,6 +80,7 @@ public class TimeInputParser : ITimeInputParser
             : Result<string>.Success(raw);
     }
 
+    // Split time format on colon
     private static Result<string[]> SplitOnColon(string raw)
     {
         var parts = raw.Split(':');
@@ -71,6 +89,7 @@ public class TimeInputParser : ITimeInputParser
             : Result<string[]>.Failure(new TimeFormatInvalidError(raw));
     }
 
+    // Validate the lengths of segments
     private static Result<string[]> ValidateSegmentLengths(string[] parts)
     {
         return parts[0].Length == 2 && parts[1].Length == 2
@@ -78,6 +97,7 @@ public class TimeInputParser : ITimeInputParser
             : Result<string[]>.Failure(new TimeSegmentLengthError(string.Join(":", parts)));
     }
 
+    // Try to parse values and provide results or handle errors
     private static Result<(int Hour, int Minute)> ParseSegmentDigits(string[] parts)
     {
         return int.TryParse(parts[0], out var hour) && int.TryParse(parts[1], out var minute)

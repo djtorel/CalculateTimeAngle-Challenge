@@ -68,3 +68,14 @@ public sealed record NoParametersProvidedError()
         "ERR_NO_PARAMS",
         "Provide either 'time=HH:mm' or both 'hour' and 'minute' query parameters.",
         "both");
+
+/// <summary>
+///     Both <c>time</c> and <c>hour</c>/<c>minute</c> were supplied. The two styles
+///     are mutually exclusive and cannot be combined in a single request.
+/// </summary>
+public sealed record AmbiguousParametersError()
+    : TimeValidationError(
+        "ERR_AMBIGUOUS_PARAMS",
+        "Parameters 'time' and 'hour'/'minute' cannot be used together. " +
+        "Use either 'time=HH:mm' or 'hour' and 'minute', not both.",
+        "time");
