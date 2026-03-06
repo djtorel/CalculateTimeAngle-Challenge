@@ -53,7 +53,7 @@ public abstract record Result<T>
     }
 
     /// <summary>
-    ///     Folds the result to a single type — the terminal operation used at system
+    ///     Folds the result to a single type. The terminal operation used at system
     ///     boundaries (e.g. mapping to <c>IActionResult</c> in a controller).
     /// </summary>
     public TOut Match<TOut>(Func<T, TOut> onSuccess, Func<Error, TOut> onFailure)

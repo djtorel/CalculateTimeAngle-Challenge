@@ -3,6 +3,12 @@ using ClockAngle.Api.Services;
 
 namespace ClockAngle.Tests;
 
+/// <summary>
+///     Unit tests for <see cref="TimeAngleCalculatorService"/>.
+///     Verifies correct hour-hand angles (including 24-hour-to-12-hour modulo mapping and
+///     0.5°/min creep), minute-hand angles, and the total-angle sum across boundary and
+///     representative mid-range cases.
+/// </summary>
 public sealed class TimeAngleCalculatorServiceTests
 {
     private readonly ITimeAngleCalculatorService _timeAngleCalculatorService = new TimeAngleCalculatorService();

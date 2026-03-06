@@ -5,8 +5,14 @@ using static ClockAngle.Api.Common.Enums.TimeStatus;
 
 namespace ClockAngle.Api.Services;
 
+/// <summary>
+///     Concrete implementation of <see cref="ITimeInputParser"/>.
+///     Dispatches to a string-based or integer-parts-based parse path depending on
+///     which query parameters are present, then validates ranges via a shared helper.
+/// </summary>
 public class TimeInputParser : ITimeInputParser
 {
+    /// <inheritdoc/>
     public Result<TimeInput> ParseTimeInput(string? time, int? hour, int? minute)
     {
         var (timeStatus, hourStatus, minuteStatus) = GetTimeStatuses(time, hour, minute);
@@ -28,6 +34,7 @@ public class TimeInputParser : ITimeInputParser
         };
     }
 
+    /// <inheritdoc/>
     public Result<TimeInput> ParseFromString(string? time)
     {
         return EnsureNotEmpty(time)
@@ -38,6 +45,7 @@ public class TimeInputParser : ITimeInputParser
     }
 
 
+    /// <inheritdoc/>
     public Result<TimeInput> ParseFromParts(int? hour, int? minute)
     {
         var (_, hourStatus, minuteStatus) = GetTimeStatuses(null, hour, minute);
@@ -57,6 +65,10 @@ public class TimeInputParser : ITimeInputParser
         };
     }
 
+    /// <summary>
+    ///     Validates that <paramref name="hour"/> is 0–23 and <paramref name="minute"/> is 0–59,
+    ///     returning a successful <see cref="TimeInput"/> or a typed range error.
+    /// </summary>
     private static Result<TimeInput> ValidateTimeInput(int hour, int minute)
     {
         return (hour, minute) switch
@@ -72,7 +84,9 @@ public class TimeInputParser : ITimeInputParser
         };
     }
 
-    // Ensure not null or empty
+    /// <summary>
+    ///     Guards against a null or whitespace <c>time</c> string before further parsing begins.
+    /// </summary>
     private static Result<string> EnsureNotEmpty(string? raw)
     {
         return string.IsNullOrEmpty(raw)
@@ -80,7 +94,9 @@ public class TimeInputParser : ITimeInputParser
             : Result<string>.Success(raw);
     }
 
-    // Split time format on colon
+    /// <summary>
+    ///     Splits the raw string on <c>':'</c> and requires exactly two segments (HH and mm).
+    /// </summary>
     private static Result<string[]> SplitOnColon(string raw)
     {
         var parts = raw.Split(':');
@@ -89,7 +105,10 @@ public class TimeInputParser : ITimeInputParser
             : Result<string[]>.Failure(new TimeFormatInvalidError(raw));
     }
 
-    // Validate the lengths of segments
+    /// <summary>
+    ///     Enforces strict two-digit formatting: each segment must be exactly 2 characters long
+    ///     (e.g. <c>"03"</c> not <c>"3"</c>).
+    /// </summary>
     private static Result<string[]> ValidateSegmentLengths(string[] parts)
     {
         return parts[0].Length == 2 && parts[1].Length == 2
@@ -97,7 +116,10 @@ public class TimeInputParser : ITimeInputParser
             : Result<string[]>.Failure(new TimeSegmentLengthError(string.Join(":", parts)));
     }
 
-    // Try to parse values and provide results or handle errors
+    /// <summary>
+    ///     Attempts to parse both segments as integers. Non-numeric characters (e.g. letters)
+    ///     that pass the length check are caught here and treated as a segment-length error.
+    /// </summary>
     private static Result<(int Hour, int Minute)> ParseSegmentDigits(string[] parts)
     {
         return int.TryParse(parts[0], out var hour) && int.TryParse(parts[1], out var minute)
