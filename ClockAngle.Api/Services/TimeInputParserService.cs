@@ -1,4 +1,5 @@
 ﻿using ClockAngle.Api.Models;
+using static ClockAngle.Api.Common.Enums.TimeStatus;
 
 namespace ClockAngle.Api.Services;
 
@@ -6,20 +7,23 @@ public class TimeInputParserService : ITimeInputParserService
 {
     public TimeParseResult ParseTimeInput(string? time, int? hour, int? minute)
     {
-        return (time, hour, minute) switch
+        var (timeStatus, hourStatus, minuteStatus) = GetTimeStatuses(time, hour, minute);
+        return (timeStatus, hourStatus, minuteStatus) switch
         {
             // Check if time parameter was entered first
-            (not null, _, _) => ParseFromString(time),
+            (Time.HasValue, _, _) => ParseFromString(time),
 
             // If at least one of hour/minute is provided,
             // let the parser figure out errors or missing fields
-            (null, not null, _) or (null, _, not null) => ParseFromParts(hour, minute),
+            (Time.IsEmpty, Hour.HasValue, _)
+                or (Time.IsEmpty, _, Minute.HasValue) => ParseFromParts(hour, minute),
+
             _ => new TimeParseResult.Failure(
                 "Provide either 'time=HH:mm' or both 'hour' and 'minute' query parameters.")
         };
     }
 
-    public TimeParseResult ParseFromString(string time)
+    public TimeParseResult ParseFromString(string? time)
     {
         if (string.IsNullOrEmpty(time))
             return new TimeParseResult.Failure("The 'time' parameter cannot be null or empty.");
@@ -39,13 +43,14 @@ public class TimeInputParserService : ITimeInputParserService
 
     public TimeParseResult ParseFromParts(int? hour, int? minute)
     {
-        return (hour, minute) switch
+        var (_, hourStatus, minuteStatus) = GetTimeStatuses(null, hour, minute);
+        return (hourStatus, minuteStatus) switch
         {
-            (null, null) => new TimeParseResult.Failure(
+            (Hour.IsEmpty, Minute.IsEmpty) => new TimeParseResult.Failure(
                 "Both 'hour' and 'minute' parameters are required when not using 'time'."),
-            (null, _) => new TimeParseResult.Failure("The 'hour' parameter is required."),
-            (_, null) => new TimeParseResult.Failure("The 'minute' parameter is required."),
-            ({ } h, { } m) => ValidateTimeInput(h, m)
+            (Hour.IsEmpty, _) => new TimeParseResult.Failure("The 'hour' parameter is required."),
+            (_, Minute.IsEmpty) => new TimeParseResult.Failure("The 'minute' parameter is required."),
+            _ => ValidateTimeInput(hour!.Value, minute!.Value)
         };
     }
 
