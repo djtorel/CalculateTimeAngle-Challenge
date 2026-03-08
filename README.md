@@ -26,11 +26,13 @@ dotnet test
 The endpoint accepts two mutually exclusive input styles.
 
 **Using a time string (`HH:mm` format):**
+
 ```
 GET /CalculateTimeAngle?time=03:00
 ```
 
 **Using separate hour and minute values:**
+
 ```
 GET /CalculateTimeAngle?hour=3&minute=0
 ```
@@ -45,11 +47,11 @@ GET /CalculateTimeAngle?hour=3&minute=0
 }
 ```
 
-| Field | Description |
-|---|---|
-| `hourHandAngle` | Hour hand position in degrees, measured clockwise from 12. Accounts for the continuous 0.5°/min movement between hour marks. |
+| Field             | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `hourHandAngle`   | Hour hand position in degrees, measured clockwise from 12.   |
 | `minuteHandAngle` | Minute hand position in degrees, measured clockwise from 12. |
-| `totalAngle` | Sum of `hourHandAngle` and `minuteHandAngle`. |
+| `totalAngle`      | Sum of `hourHandAngle` and `minuteHandAngle`.                |
 
 ### Error Responses
 
